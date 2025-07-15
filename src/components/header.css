@@ -1,0 +1,112 @@
+/* Ensure these keyframes are correctly defined */
+@keyframes pulse-fire {
+  0% {
+    transform: scale(0.95) translate(-50%, -50%); /* Adjust for origin */
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.05) translate(-50%, -50%);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(0.95) translate(-50%, -50%);
+    opacity: 0.5;
+  }
+}
+
+@keyframes fly-spark {
+  0% {
+    transform: translate(var(--spark-x-start, 0), var(--spark-y-start, 0)) scale(0.2);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9; /* Quick appearance */
+  }
+  100% {
+    transform: translate(var(--spark-x-end, 50px), var(--spark-y-end, -50px)) scale(1.0);
+    opacity: 0; /* Fades out */
+  }
+}
+
+.header-fiery-bg {
+  position: relative;
+  overflow: hidden; /* Crucial for containing sparks */
+  /* If the header itself has a transform (e.g., from other styles), it might create a new stacking context.
+     Sometimes adding a z-index (even z-index: 1) to the parent can help pseudo-elements. */
+  z-index: 1; /* Added this as a troubleshooting step, can remove if not needed */
+}
+
+.header-fiery-bg::before {
+  content: '';
+  position: absolute;
+  top: 50%; /* Center the origin for the pulse effect */
+  left: 50%; /* Center the origin for the pulse effect */
+  width: 150%; /* Make it larger to cover more area */
+  height: 150%; /* Make it larger to cover more area */
+  background: radial-gradient(circle at 70% 30%, rgba(255, 100, 0, 0.3) 0%, transparent 35%),
+              radial-gradient(circle at 30% 80%, rgba(255, 165, 0, 0.25) 0%, transparent 40%),
+              radial-gradient(circle at 90% 60%, rgba(255, 69, 0, 0.2) 0%, transparent 50%);
+  animation: pulse-fire 8s infinite ease-in-out alternate;
+  z-index: -1; /* Behind content */
+}
+
+/* Spark pseudo-element - using ::after for one spark */
+.header-fiery-bg::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 10px 3px rgba(255, 165, 0, 0.8), 0 0 5px 1px rgba(255, 200, 0, 0.7);
+  animation: fly-spark 2.5s infinite ease-out;
+  /* Define custom properties for spark movement */
+  --spark-x-start: 10%;
+  --spark-y-start: 80%;
+  --spark-x-end: 20%;
+  --spark-y-end: 20%;
+  animation-delay: 0.5s;
+  z-index: 0; /* Changed to 0, might be better visible than -1 in some stacking contexts */
+}
+
+/* To add MORE sparks, you can add empty divs with unique classes inside the Header component
+   and style them similarly in CSS. Or, use multiple pseudo-elements if your structure allows. */
+
+.spark-item { /* This class will be applied to divs you add in JSX */
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background-color: rgba(255, 255, 255, 0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 7px 2px rgba(255, 100, 0, 0.6), 0 0 3px 1px rgba(255, 200, 0, 0.5);
+  animation: fly-spark 3s infinite ease-out; /* Different duration */
+  z-index: 0; /* Changed to 0 */
+}
+
+/* Individual spark positions and delays */
+.spark-item:nth-child(1) { /* Corresponds to the first .spark-item div in JSX */
+  --spark-x-start: 40%;
+  --spark-y-start: 90%;
+  --spark-x-end: 50%;
+  --spark-y-end: 30%;
+  animation-delay: 1.5s;
+  width: 5px; height: 5px;
+}
+
+.spark-item:nth-child(2) { /* Corresponds to the second .spark-item div in JSX */
+  --spark-x-start: 70%;
+  --spark-y-start: 70%;
+  --spark-x-end: 85%;
+  --spark-y-end: 15%;
+  animation-delay: 2.8s;
+  width: 3px; height: 3px;
+}
+
+.spark-item:nth-child(3) { /* Corresponds to the third .spark-item div in JSX */
+  --spark-x-start: 25%;
+  --spark-y-start: 60%;
+  --spark-x-end: 30%;
+  --spark-y-end: 10%;
+  animation-delay: 4s;
+  width: 4px; height: 4px;
+}
