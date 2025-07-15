@@ -100,5 +100,4 @@ function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrent
     </aside>
   );
 }
-
 export default BotSidebar;
