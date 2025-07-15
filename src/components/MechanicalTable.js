@@ -1,19 +1,7 @@
-// src/components/MechanicalTable.js
 import React from 'react';
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
-/**
- * MechanicalTable Component
- * Displays and manages a table for mechanical components of a specific bot.
- * Also shows mechanical metrics like total weight and material distribution.
- * Allows adding, editing, and deleting rows.
- *
- * @param {object} props - The component props.
- * @param {object} props.bot - The current bot object containing mechanical data.
- * @param {function} props.setBots - Function to update the main bots state.
- * @param {Array} props.bots - The array of all bot objects.
- */
 function MechanicalTable({ bot, setBots, bots }) {
-  // Function to update a cell value in the mechanical table
   const handleCellChange = (e, rowId, field) => {
     const updatedMechanical = bot.mechanical.map(item =>
       item.id === rowId ? { ...item, [field]: e.target.value } : item
@@ -21,61 +9,59 @@ function MechanicalTable({ bot, setBots, bots }) {
     updateBotData(updatedMechanical, 'mechanical');
   };
 
-  // Function to add a new row when 'Enter' key is pressed in an input field
-  const handleAddRow = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-    }
+  const handleAddRow = () => {
     const newRow = { id: Date.now().toString(), name: '', material: '', qty: '', weight: '' };
     const updatedMechanical = [...bot.mechanical, newRow];
     updateBotData(updatedMechanical, 'mechanical');
   };
 
-  // Function to delete a specific row from the mechanical table
   const handleDeleteRow = (rowId) => {
     const updatedMechanical = bot.mechanical.filter(item => item.id !== rowId);
     updateBotData(updatedMechanical, 'mechanical');
   };
 
-  // Helper function to update the bot's data (electronics or mechanical) in the main bots state
+  const handleClearRows = () => {
+    updateBotData([], 'mechanical');
+  };
+
   const updateBotData = (updatedData, type) => {
     setBots(bots.map(b =>
       b.id === bot.id ? { ...b, [type]: updatedData } : b
     ));
   };
 
-  // Calculate total weight for mechanical components
   const totalWeight = bot.mechanical.reduce((sum, item) => {
     const weight = parseFloat(item.weight) || 0;
     const qty = parseInt(item.qty) || 0;
     return sum + (weight * qty);
   }, 0);
 
-  // Calculate material distribution for a simple "pie chart" representation
   const materialDistribution = bot.mechanical.reduce((acc, item) => {
-    if (item.material) {
-      acc[item.material] = (acc[item.material] || 0) + (parseFloat(item.weight) || 0);
+    if (item.material && item.material.trim() !== '') {
+      const weight = parseFloat(item.weight) || 0;
+      const qty = parseInt(item.qty) || 0;
+      acc[item.material] = (acc[item.material] || 0) + (weight * qty);
     }
     return acc;
   }, {});
 
-  // Convert distribution to an array for easier rendering (e.g., for a real chart library)
   const pieChartData = Object.entries(materialDistribution).map(([material, weight]) => ({
-    material,
-    weight,
-    percentage: (weight / totalWeight) * 100 || 0
+    name: material,
+    value: weight,
   }));
 
+  const COLORS = ['#4299E1', '#805AD5', '#38B2AC', '#ED8936', '#ECC94B', '#F56565'];
+
   return (
-    <div className="flex-1 flex flex-col overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
       <h3 className="text-2xl font-semibold mb-4 text-gray-800">Mechanical Components</h3>
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 overflow-hidden">
-        {/* Table Section - Added max-h-[calc(100vh-320px)] and overflow-y-auto */}
-        <div className="flex-1 overflow-x-auto overflow-y-auto max-h-[calc(100vh-320px)] rounded-lg shadow-lg border border-gray-200">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 h-full overflow-hidden">
+        {/* Fixed Height Table Container with Scroll */}
+        <div className="flex-1 overflow-x-auto overflow-y-auto rounded-lg shadow-lg border border-gray-200">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50 sticky top-0 z-10"> {/* Added sticky top-0 and z-10 for sticky header */}
+            <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg"></th> {/* For delete button */}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg"></th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Material</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
@@ -83,66 +69,68 @@ function MechanicalTable({ bot, setBots, bots }) {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {bot.mechanical.map((item, index) => (
-                <tr key={item.id}>
-                  <td className="px-4 py-2 whitespace-nowrap text-center">
-                    <button
-                      onClick={() => handleDeleteRow(item.id)}
-                      className="text-red-500 hover:text-red-700 transition duration-150"
-                      aria-label="Delete row"
-                    >
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"></path>
-                      </svg>
-                    </button>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="text"
-                      value={item.name}
-                      onChange={(e) => handleCellChange(e, item.id, 'name')}
-                      onKeyDown={handleAddRow}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="Component Name"
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="text"
-                      value={item.material}
-                      onChange={(e) => handleCellChange(e, item.id, 'material')}
-                      onKeyDown={handleAddRow}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="Material (e.g., Steel, Aluminum)"
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="number"
-                      value={item.qty}
-                      onChange={(e) => handleCellChange(e, item.id, 'qty')}
-                      onKeyDown={handleAddRow}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="Quantity"
-                    />
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <input
-                      type="number"
-                      value={item.weight}
-                      onChange={(e) => handleCellChange(e, item.id, 'weight')}
-                      onKeyDown={handleAddRow}
-                      className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      placeholder="Weight per item"
-                    />
-                  </td>
+              {bot.mechanical.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No mechanical components added yet.</td>
                 </tr>
-              ))}
+              ) : (
+                bot.mechanical.map((item) => (
+                  <tr key={item.id}>
+                    <td className="px-4 py-2 whitespace-nowrap text-center">
+                      <button
+                        onClick={() => handleDeleteRow(item.id)}
+                        className="text-red-500 hover:text-red-700 transition duration-150"
+                        aria-label="Delete row"
+                      >
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"></path>
+                        </svg>
+                      </button>
+                    </td>
+                    {/* Table cells with content wrapping */}
+                    <td className="px-6 py-4">
+                      <input
+                        type="text"
+                        value={item.name}
+                        onChange={(e) => handleCellChange(e, item.id, 'name')}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Component Name"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="text"
+                        value={item.material}
+                        onChange={(e) => handleCellChange(e, item.id, 'material')}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Material (e.g., Steel, Aluminum)"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="number"
+                        value={item.qty}
+                        onChange={(e) => handleCellChange(e, item.id, 'qty')}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Quantity"
+                      />
+                    </td>
+                    <td className="px-6 py-4">
+                      <input
+                        type="number"
+                        value={item.weight}
+                        onChange={(e) => handleCellChange(e, item.id, 'weight')}
+                        className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+                        placeholder="Weight per item"
+                      />
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Metrics Section */}
         <div className="w-full lg:w-1/3 p-4 bg-gray-50 rounded-xl shadow-inner border border-gray-200 flex flex-col justify-between">
           <h4 className="text-xl font-semibold mb-4 text-gray-800">Mechanical Metrics</h4>
           <div className="flex-1 flex flex-col items-center justify-center">
@@ -150,28 +138,49 @@ function MechanicalTable({ bot, setBots, bots }) {
               <p className="text-lg text-gray-700">Total Weight:</p>
               <p className="text-4xl font-bold text-blue-600">{totalWeight.toFixed(2)} kg</p>
             </div>
-            {/* Simple representation of a "pie chart" - can be replaced with a library later */}
-            <div className="w-48 h-48 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 text-sm font-medium border-4 border-gray-300">
-              {pieChartData.length > 0 ? (
-                <ul className="list-disc list-inside">
-                  {pieChartData.map((data, index) => (
-                    <li key={index} className="text-gray-700">
-                      {data.material}: {data.percentage.toFixed(1)}%
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <span>No data for chart</span>
-              )}
-            </div>
-            <p className="mt-4 text-gray-600 text-center">Material Distribution (by weight)</p>
+            {pieChartData.length > 0 && totalWeight > 0 ? (
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => `${value.toFixed(2)} kg`} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="text-gray-500 text-center text-sm">
+                No material data for chart. Add components with material and weight.
+              </div>
+            )}
           </div>
         </div>
       </div>
-      {/* Add Row Button for Mechanical Table */}
-      <div className="mt-4 text-right">
+      {/* Buttons with right padding to prevent cutting off the border outline */}
+      {/* Adjust pr-value (e.g., pr-4, pr-6, pr-8) to control right padding */}
+      <div className="mt-0 flex justify-end space-x-3 py-4 pr-6">
         <button
-          onClick={() => handleAddRow()}
+          onClick={handleClearRows}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition duration-150"
+        >
+          <svg className="-ml-1 mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 012 0v6a1 1 0 11-2 0V8z" clipRule="evenodd"></path>
+          </svg>
+          Clear Rows
+        </button>
+        <button
+          onClick={handleAddRow}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150"
         >
           <svg className="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">

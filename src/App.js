@@ -1,60 +1,77 @@
-// src/App.js
 import React, { useState } from 'react';
 import Header from './components/Header';
 import BotSidebar from './components/BotSidebar';
 import ElectronicsTable from './components/ElectronicsTable';
 import MechanicalTable from './components/MechanicalTable';
 
-// Main App Component
 function App() {
-  // State to manage the list of bots
   const [bots, setBots] = useState([]);
-  // State to manage the currently selected bot
   const [selectedBotId, setSelectedBotId] = useState(null);
-  // State to manage the current view for the selected bot (electronics or mechanical)
-  const [currentView, setCurrentView] = useState('electronics'); // 'electronics' or 'mechanical'
+  const [currentView, setCurrentView] = useState('electronics');
 
-  // Get the currently selected bot object
   const selectedBot = bots.find(bot => bot.id === selectedBotId);
 
   return (
-    // The root app div must be flex-col and min-h-screen to occupy full viewport height
-    <div className="min-h-screen bg-gray-100 font-inter flex flex-col">
-      {/* Header */}
+    // Outermost container:
+    // h-screen: Sets the height of the div to 100% of the viewport height.
+    // bg-gray-100: Sets a light gray background.
+    // font-inter: Applies the Inter font.
+    // flex flex-col: Establishes a flex container with items stacked vertically.
+    // overflow-hidden: Prevents any scrollbars from appearing on the entire page (main window).
+    <div className="h-screen bg-gray-100 font-inter flex flex-col overflow-hidden">
+      {/* Header Component */}
       <Header />
 
-      {/* Main Content Area - This div holds the sidebar and the main content. */}
-      {/* flex-1 ensures it takes all remaining vertical space after the header. */}
-      {/* overflow-hidden is crucial here to prevent the main page from scrolling. */}
+      {/* This flex container ensures sidebar and main content share available height:
+          flex: Establishes a flex container.
+          flex-1: Allows this container to grow and shrink to fill available space.
+          overflow-hidden: Essential to contain the sidebar and main content, preventing them from overflowing this container.
+      */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Sidebar */}
+        {/* BotSidebar Component: Manages bot selection and creation */}
+        {/*
+          Adjust the width of the sidebar. You can use 'w-1/5' for 20%, 'w-1/4' for 25%,
+          or a fixed pixel width like 'w-80' (320px).
+          'w-72' (288px) is a good starting point to give more space to the main content.
+        */}
         <BotSidebar
           bots={bots}
           setBots={setBots}
           selectedBotId={selectedBotId}
           setSelectedBotId={setSelectedBotId}
           setCurrentView={setCurrentView}
+          // The width class needs to be applied within the BotSidebar component itself
+          // or passed as a prop if it controls its own width. For simplicity,
+          // assume BotSidebar directly has a width applied or can receive one.
+          // For now, the App component only affects the distribution of space.
         />
 
-        {/* Right Main Content Area (the 'main' tag) */}
-        {/* flex-1 ensures it takes all remaining horizontal space. */}
-        {/* flex-col ensures its children are stacked vertically. */}
-        {/* overflow-hidden ensures any content overflowing this 'main' area is hidden. */}
-        {/* p-8 adds padding around the content. */}
+        {/* Main content display area (right side):
+            flex-1: Allows this section to grow and shrink, taking up the remaining horizontal space.
+            p-8: Adds padding all around.
+            bg-cover bg-center: Styles for the background image.
+            flex flex-col: Establishes a flex container with items stacked vertically.
+            overflow-hidden: Prevents this 'main' area itself from scrolling. Scrolling will be managed deeper within.
+            rounded-tl-lg: Rounds the top-left corner.
+        */}
         <main
-          className="flex-1 p-8 bg-cover bg-center flex flex-col rounded-tl-lg overflow-hidden" // Added overflow-hidden here
+          className="flex-1 p-8 bg-cover bg-center flex flex-col overflow-hidden rounded-tl-lg"
           style={{ backgroundImage: `url('https://placehold.co/1200x800/e0e0e0/ffffff?text=Combat+Robotics+Workspace')` }}
         >
           {selectedBot ? (
-            // This white content box needs to fill the available space within 'main'
-            // flex-1 ensures it expands to fill vertical space.
-            // flex-col arranges its children vertically.
-            // overflow-hidden on this div is CRUCIAL to contain the scrollable table.
-            // pb-6 added to give more space for buttons at the bottom.
-            <div className="bg-white bg-opacity-90 p-6 pb-6 rounded-xl shadow-2xl flex-1 flex flex-col overflow-hidden"> {/* Adjusted pb-6 */}
+            // Inner content wrapper when a bot is selected:
+            // bg-white bg-opacity-90: White background with 90% opacity.
+            // p-6 pb-16: Padding all around, with extra padding at the bottom.
+            // rounded-xl shadow-2xl: Rounded corners and a strong shadow.
+            // flex-1: Allows this div to fill the available space within its parent 'main'.
+            // flex flex-col: Establishes a flex container with items stacked vertically.
+            // overflow-hidden: Prevents content within this white box from overflowing it,
+            //                  allowing child components (tables) to manage their own scrolls internally.
+            <div className="bg-white bg-opacity-90 p-6 pb-16 rounded-xl shadow-2xl flex-1 flex flex-col overflow-hidden">
+              {/* Bot Name Heading */}
               <h2 className="text-3xl font-bold mb-6 text-gray-900">{selectedBot.name}</h2>
 
-              {/* View Switcher Tabs */}
+              {/* Tab buttons for switching between Electronics and Mechanical views */}
               <div className="mb-6 flex space-x-4">
                 <button
                   onClick={() => setCurrentView('electronics')}
@@ -78,23 +95,31 @@ function App() {
                 </button>
               </div>
 
-              {/* Render the appropriate table based on currentView */}
-              {currentView === 'electronics' && (
-                <ElectronicsTable
-                  bot={selectedBot}
-                  setBots={setBots}
-                  bots={bots}
-                />
-              )}
-              {currentView === 'mechanical' && (
-                <MechanicalTable
-                  bot={selectedBot}
-                  setBots={setBots}
-                  bots={bots}
-                />
-              )}
+              {/* Container for the table components:
+                  flex-1: Ensures this div takes up the remaining vertical space.
+                  flex flex-col: Stacks table components vertically (though only one is visible at a time).
+                  overflow-hidden: Prevents the table components from overflowing this container,
+                                   allowing them to manage their internal scrolls.
+              */}
+              <div className="flex-1 flex flex-col overflow-hidden">
+                {currentView === 'electronics' && (
+                  <ElectronicsTable
+                    bot={selectedBot}
+                    setBots={setBots}
+                    bots={bots}
+                  />
+                )}
+                {currentView === 'mechanical' && (
+                  <MechanicalTable
+                    bot={selectedBot}
+                    setBots={setBots}
+                    bots={bots}
+                  />
+                )}
+              </div>
             </div>
           ) : (
+            // Placeholder content when no bot is selected
             <div className="flex flex-col items-center justify-center h-full text-gray-700 text-center text-2xl font-semibold">
               <p className="mb-4">Select a bot from the left or add a new one to get started!</p>
               <svg className="w-24 h-24 text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">

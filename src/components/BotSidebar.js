@@ -1,24 +1,10 @@
-// src/components/BotSidebar.js
 import React, { useState } from 'react';
 
-/**
- * BotSidebar Component
- * Displays a list of bots, allows adding new bots, and editing bot names.
- *
- * @param {object} props - The component props.
- * @param {Array} props.bots - The array of all bot objects.
- * @param {function} props.setBots - Function to update the main bots state.
- * @param {string|null} props.selectedBotId - The ID of the currently selected bot.
- * @param {function} props.setSelectedBotId - Function to set the currently selected bot ID.
- * @param {function} props.setCurrentView - Function to set the current view (electronics/mechanical).
- */
 function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrentView }) {
-  // State to manage which bot's name is currently being edited
   const [editingBotId, setEditingBotId] = useState(null);
 
-  // Function to add a new bot
   const addBot = () => {
-    const newBotId = Date.now().toString(); // Simple unique ID
+    const newBotId = Date.now().toString();
     const newBot = {
       id: newBotId,
       name: `New Bot ${bots.length + 1}`,
@@ -26,12 +12,11 @@ function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrent
       mechanical: [{ id: 'm1', name: '', material: '', qty: '', weight: '' }],
     };
     setBots([...bots, newBot]);
-    setSelectedBotId(newBotId); // Select the new bot
-    setCurrentView('electronics'); // Default to electronics view for new bot
-    setEditingBotId(null); // Ensure no bot name is being edited
+    setSelectedBotId(newBotId);
+    setCurrentView('electronics');
+    setEditingBotId(null);
   };
 
-  // Function to handle changing a bot's name
   const handleBotNameChange = (e, botId) => {
     const updatedBots = bots.map(bot =>
       bot.id === botId ? { ...bot, name: e.target.value } : bot
@@ -39,14 +24,13 @@ function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrent
     setBots(updatedBots);
   };
 
-  // Function to save the edited bot name when focus is lost or Enter is pressed
   const handleBotNameBlur = () => {
     setEditingBotId(null);
   };
 
   const handleBotNameKeyDown = (e) => {
     if (e.key === 'Enter') {
-      e.target.blur(); // Blur the input to trigger onBlur and save
+      e.target.blur();
     }
   };
 
@@ -79,15 +63,15 @@ function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrent
                     onBlur={handleBotNameBlur}
                     onKeyDown={handleBotNameKeyDown}
                     className="w-full p-2 border border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300"
-                    autoFocus // Automatically focus when editing
+                    autoFocus
                   />
                 ) : (
                   <button
                     onClick={() => {
                       setSelectedBotId(bot.id);
-                      setCurrentView('electronics'); // Always default to electronics when selecting a bot
+                      setCurrentView('electronics');
                     }}
-                    onDoubleClick={() => setEditingBotId(bot.id)} // Double click to edit name
+                    onDoubleClick={() => setEditingBotId(bot.id)}
                     className={`w-full text-left p-3 rounded-lg flex items-center justify-between transition duration-200 ${
                       selectedBotId === bot.id
                         ? 'bg-blue-100 text-blue-800 font-medium shadow-inner'
@@ -95,7 +79,6 @@ function BotSidebar({ bots, setBots, selectedBotId, setSelectedBotId, setCurrent
                     }`}
                   >
                     <span>{bot.name}</span>
-                    {/* You can add a small icon or indicator here if needed */}
                   </button>
                 )}
               </li>
