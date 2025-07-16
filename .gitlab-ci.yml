@@ -1,7 +1,7 @@
 # Define the stages of your pipeline
 stages:
   - build_image
-  - deploy # Placeholder for future deployment
+  - deploy
 
 # Define a cache for node_modules to speed up builds
 cache:
@@ -11,48 +11,30 @@ cache:
 # Job to build and push the Docker image
 build_and_push_docker_image:
   stage: build_image
-  image: docker:latest # Use the official Docker image for Docker commands
+  image: docker:latest
   services:
-    - docker:dind # Enable Docker-in-Docker to build images within the container
+    - docker:dind
 
   script:
     - echo "Logging into GitLab Container Registry..."
-    # Authenticate with the GitLab Container Registry
-    # CI_REGISTRY_USER, CI_REGISTRY_PASSWORD, CI_REGISTRY are predefined GitLab CI/CD variables
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
     - echo "Building Docker image..."
-    # Build the Docker image from the Dockerfile in the current directory (.)
-    # -t tags the image: one with the commit SHA for unique identification, one with 'latest'
     - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA -t $CI_REGISTRY_IMAGE:latest .
 
     - echo "Pushing Docker image to GitLab Container Registry..."
-    # Push the tagged images to the registry
     - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $CI_REGISTRY_IMAGE:latest
 
-  # This job will run on every push to any branch
-  # For more control, you could use 'only: [main]' or 'rules:'
   rules:
-    - if: $CI_COMMIT_BRANCH # Run on any branch commit
-
-  # For shared runners, you typically don't need 'tags'.
-  # If you use a specific runner, you'd add:
-  # tags:
-  #   - your-runner-tag
+    - if: $CI_COMMIT_BRANCH
 
 # Placeholder for a deployment job
-# You will fill this out later when you have a deployment target (e.g., a server, Kubernetes, etc.)
 deploy_app:
   stage: deploy
-  image: alpine/git # A lightweight image, you might need more tools here
+  image: alpine/git
   script:
-    - echo "Deployment job started..."
-    - echo "This is a placeholder. You would add your deployment commands here."
-    - echo "For example: SSH into a server and pull the latest Docker image, then restart the container."
-    - echo "Current commit SHA: $CI_COMMIT_SHORT_SHA"
-    - echo "Image path: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - echo "Deployment job started. This is a placeholder."
   rules:
-    - if: $CI_COMMIT_BRANCH == "main" # Only deploy when changes are merged into 'main'
-      when: manual # Make this a manual job for production deployment
-  # For shared runners, you typically don't need 'tags'.
+    - if: $CI_COMMIT_BRANCH == "main"
+      when: manual
