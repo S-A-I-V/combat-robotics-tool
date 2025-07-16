@@ -11,6 +11,7 @@ function App() {
 
   const selectedBot = bots.find(bot => bot.id === selectedBotId);
 
+  
   return (
     // Outermost container:
     // h-screen: Sets the height of the div to 100% of the viewport height.
