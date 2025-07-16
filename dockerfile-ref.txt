@@ -1,0 +1,19 @@
+FROM node:20-alpine AS builder: Starts with a lightweight Node.js image to build your React app.
+
+WORKDIR /app: Sets the working directory inside the container.
+
+COPY package*.json ./: Copies your package.json and package-lock.json files. This allows Docker to cache the npm install step if your dependencies haven't changed, speeding up builds.
+
+RUN npm install: Installs your project dependencies.
+
+COPY . .: Copies all your source code into the container.
+
+RUN npm run build: Executes your React app's build script, which typically generates static files in a build/ directory.
+
+FROM nginx:stable-alpine: Starts a new, very lightweight Nginx image. This is the final image your application will run in.
+
+COPY --from=builder /app/build /usr/share/nginx/html: Copies the built React application from the builder stage into the Nginx's default web serving directory.
+
+EXPOSE 80: Informs Docker that the container listens on port 80 at runtime.
+
+CMD ["nginx", "-g", "daemon off;"]: Starts the Nginx server when the container runs.
