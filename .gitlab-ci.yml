@@ -43,8 +43,6 @@ build_and_push_docker_image:
 
 # Placeholder for a deployment job
 # You will fill this out later when you have a deployment target (e.g., a server, Kubernetes, etc.)
-# Placeholder for a deployment job
-# You will fill this out later when you have a deployment target (e.g., a server, Kubernetes, etc.)
 deploy_app:
   stage: deploy
   image: alpine/git # A lightweight image, you might need more tools here
